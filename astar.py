@@ -199,3 +199,36 @@ def astar(start, goal, step_size, clearance):
         open_dict.pop(current.position)
     print("Path not found")
     return False
+
+def animate(ani, pathTaken, start, goal):
+    save = cv2.VideoWriter(r'astar.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (600 + 1, 250 + 1))
+
+    obstacle_space = obstacle_map(600, 250)
+    cv2.circle(obstacle_space, (start[0], obstacle_space.shape[0] - start[1] - 1), 1, (0, 0, 255), 1)
+    cv2.circle(obstacle_space, (goal[0], obstacle_space.shape[0] - goal[1] - 1), 1, (0, 0, 255), 1)
+
+    for i in ani:
+        start, end = i.parent_node.position[:2], i.position[:2]
+        cv2.arrowedLine(obstacle_space, (start[0], obstacle_space.shape[0] - start[1] - 1), (end[0], obstacle_space.shape[0] - end[1] - 1),
+                        [255, 192, 203], 1, tipLength=0.2)
+        save.write(obstacle_space)
+
+    for i in range(len(pathTaken)-1):
+        x1, y1 = pathTaken[i][:2]
+        x2, y2 = pathTaken[i+1][:2]
+        cv2.arrowedLine(obstacle_space, (x1, obstacle_space.shape[0] - y1 - 1), (x2, obstacle_space.shape[0] - y2 - 1), [50, 200, 20], 1, tipLength=0.4)
+        save.write(obstacle_space)
+
+    for i in range(4):
+        save.write(obstacle_space)
+    save.release()
+
+
+# User input variables
+start = (int(input('Enter start x-coordinate: ')), int(input('Enter start y-coordinate: ')), int(input('Enter start theta: ')))
+goal = (int(input('Enter goal x-coordinate: ')), int(input('Enter goal y-coordinate: ')), int(input('Enter goal theta: ')))
+step_size = int(input('Enter step-size: '))
+clearance = int(input('Enter clearance (robot radius + obstacle_clearance): '))
+
+path,ani = astar(start, goal, step_size, clearance)
+animate(ani, path, start, goal)
