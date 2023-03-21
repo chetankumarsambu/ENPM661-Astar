@@ -157,3 +157,45 @@ def get_childnode(node, step_size, goal, clearance):
         else:
             del child
     return children
+
+def optimal_path(current):
+    path = [current.position]
+    while current.parent_node is not None:
+        current = current.parent_node
+        path.append(current.position)
+    return path[::-1]
+
+def astar(start, goal, step_size, clearance):
+    start_time = time.time()
+    if not all(map(lambda pos: check_obstacles(pos, clearance), [start, goal])):
+        print("One of the positions is in the obstacle grid")
+        return False
+
+    grid = obstacle_map(600, 250)
+    tc_g = np.linalg.norm(np.subtract(start[:2], goal[:2]))
+    open_dict, closed_dict, viz = {}, {}, []
+    initial_node = Node(start, None, 0, tc_g)
+    open_dict[initial_node.position] = initial_node
+
+    while open_dict:
+        current = min(open_dict.values(), key=lambda x: x.total_cost)
+        if np.linalg.norm(np.subtract(current.position[:2], goal[:2])) <= step_size * 0.5:
+            pathTaken = optimal_path(current)
+            print('Time taken for A* algorithm:', time.time() - start_time)
+            return pathTaken, viz
+        else:
+            childList = get_childnode(current, step_size, goal, clearance)
+            for _, _, child_created in childList:
+                if child_created.position in closed_dict:
+                    continue
+                actionCost = child_created.cost_to_come - current.cost_to_come
+                if child_created.position not in open_dict:
+                    open_dict[child_created.position] = child_created
+                    viz.append(child_created)
+                elif actionCost < 0:
+                    open_dict[child_created.position].parent_node = current
+                    open_dict[child_created.position].cost_to_come = current.cost_to_come + actionCost
+        closed_dict[current.position] = current
+        open_dict.pop(current.position)
+    print("Path not found")
+    return False
