@@ -146,3 +146,14 @@ def check_obstacles(loc, gap):
     )
 
     return not (in_hexagon or in_triangle or in_boundary or in_rectangles)
+
+def get_childnode(node, step_size, goal, clearance):
+    actions = [(move_forward, 0), (acw_60, 30), (acw_60, 60), (cw_30, -30), (cw_60, -60)]
+    children = []
+    for action, angle in actions:
+        actionCost, cgoal, child = action(step_size, node, goal)
+        if check_obstacles(child.position, clearance):
+            children.append((actionCost, cgoal, child))
+        else:
+            del child
+    return children
